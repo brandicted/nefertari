@@ -9,7 +9,7 @@ def _jdefault(obj):
     return obj.__dict__
 
 
-def load(inputfile, destination):
+def load(inputfile, destination, nossl=False):
     json_file = open(inputfile)
     json_data = json.load(json_file)
 
@@ -19,13 +19,14 @@ def load(inputfile, destination):
         r = requests.post(
             destination,
             data=data,
+            verify=not nossl,
             headers={'Content-type': 'application/json'})
         print r.status_code
 
     json_file.close()
 
 
-def load_singular_objects(inputfile, destination):
+def load_singular_objects(inputfile, destination, nossl=False):
     parent_route, dynamic_part = destination.split('{')
     parent_route = parent_route.strip('/')
     id_field, singlular_field = dynamic_part.split('}')
@@ -35,7 +36,7 @@ def load_singular_objects(inputfile, destination):
     json_data = json.load(json_file)
     objects_count = len(json_data)
 
-    query_string = '?_limit={}'.format(objects_count, id_field)
+    query_string = '?_limit={}'.format(objects_count)
     parent_objects = requests.get(parent_route + query_string).json()['data']
 
     for parent in parent_objects:
@@ -48,6 +49,7 @@ def load_singular_objects(inputfile, destination):
         r = requests.post(
             singular_url,
             data=data,
+            verify=not nossl,
             headers={'Content-type': 'application/json'})
         print r.status_code
 
@@ -55,7 +57,7 @@ def load_singular_objects(inputfile, destination):
 def main():
     argv = sys.argv[1:]
     try:
-        opts, args = getopt.getopt(argv, 'hf:u:', ['help', 'file=', 'url='])
+        opts, args = getopt.getopt(argv, 'hf:u:', ['help', 'file=', 'url=', 'nossl'])
     except getopt.GetoptError:
         usage()
         sys.exit(2)
@@ -68,6 +70,8 @@ def main():
             inputfile = arg
         elif opt in ('-u', '--url'):
             destination = arg
+        elif opt == '--nossl':
+            nossl = True
 
     try:
         inputfile
@@ -76,12 +80,14 @@ def main():
         usage()
         sys.exit()
 
+    nossl = nossl if 'nossl' in locals() else False
+
     if '{' in destination and not destination.endswith('}'):
         # E.g. /users/{username}/profile
-        load_singular_objects(inputfile, destination)
+        load_singular_objects(inputfile, destination, nossl)
     else:
         # E.g. /users
-        load(inputfile, destination)
+        load(inputfile, destination, nossl)
 
 
 def usage():
