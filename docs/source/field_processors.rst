@@ -47,6 +47,9 @@ Nefertari passes following parameters to processors:
 Processors are called in order they are passed to ``nefertari.events.add_field_processors``. Each processor must return processed value which is used a input for next processor if present.
 
 
+Note that nefertari authentication system(login, logout, token claim, token reset) triggers events as well. When processor was triggered by nefertari authentication system, event ("event" keyword argument passed to processor) property ``event.is_auth_view`` will equal to ``True``. This may require additional care when processors mutate fields which participate in authentication process.
+
+
 Examples
 --------
 

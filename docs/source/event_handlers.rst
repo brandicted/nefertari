@@ -51,6 +51,9 @@ Notes:
    - If a field changed via ``event.set_field_value`` is not affected by request, it will be added to ``event.fields`` which will make any field processors which are connected to this field to be triggered, if they are run after this method call (connected to events after handler that performs method call).
 
 
+Note that nefertari authentication system(login, logout, token claim, token reset) triggers events as well. In particular, default nefertari authentication views trigger ``BeforeCreate`` and ``AfterCreate`` events. When event was triggered by instance or subclass of nefertari authentication views, event property ``event.is_auth_view`` will equal to ``True``. This may require additional care when event handlers mutate fields which participate in authentication process.
+
+
 Predicates
 ----------
 

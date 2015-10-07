@@ -3,7 +3,6 @@ from mock import Mock, patch
 
 from .fixtures import engine_mock
 from nefertari.json_httpexceptions import JHTTPBadRequest
-from nefertari.utils import FieldData
 
 
 class TestModelHelpers(object):
@@ -18,11 +17,12 @@ class TestModelHelpers(object):
         field = Mock(params={'min_length': 1})
         encrypted = models.encrypt_password(
             instance=None, new_value='foo',
-            field=field)
+            field=field, event=Mock(is_auth_view=False))
         assert models.crypt.match(encrypted)
         assert encrypted != 'foo'
         assert encrypted == models.encrypt_password(
-            instance=None, new_value=encrypted, field=field)
+            instance=None, new_value=encrypted, field=field,
+            event=Mock(is_auth_view=False))
 
     def test_encrypt_password_failed(self, engine_mock):
         from nefertari.authentication import models
@@ -31,8 +31,17 @@ class TestModelHelpers(object):
         with pytest.raises(ValueError) as ex:
             models.encrypt_password(
                 instance=None, new_value='foo',
-                field=field)
+                field=field, event=Mock(is_auth_view=False))
         assert str(ex.value) == '`q`: Value length must be more than 10'
+
+    def test_encrypt_password_auth_view(self, engine_mock):
+        from nefertari.authentication import models
+        field = Mock(params={'min_length': 1})
+        encrypted = models.encrypt_password(
+            instance=None, new_value='foo',
+            field=field, event=Mock(is_auth_view=True))
+        assert not models.crypt.match(encrypted)
+        assert encrypted == 'foo'
 
     @patch('nefertari.authentication.models.uuid.uuid4')
     def test_create_apikey_token(self, mock_uuid, engine_mock):
