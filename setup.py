@@ -7,7 +7,7 @@ README = open(os.path.join(here, 'README.md')).read()
 VERSION = open(os.path.join(here, 'VERSION')).read()
 
 install_requires = [
-    'pyramid',
+    'pyramid==1.5.7',
     'tempita',
     'requests',
     'simplejson',
@@ -44,7 +44,6 @@ setup(
     install_requires=install_requires,
     entry_points="""\
     [console_scripts]
-        nefertari.index = nefertari.scripts.es:main
         nefertari.post2api = nefertari.scripts.post2api:main
     [pyramid.scaffold]
         nefertari_starter = nefertari.scaffolds:NefertariStarterTemplate
