@@ -38,6 +38,7 @@ class TicketAuthViewMixin(object):
         if success:
             pk_field = user.pk_field()
             headers = remember(self.request, getattr(user, pk_field))
+            self.request.user = user
             if next:
                 raise JHTTPFound(location=next, headers=headers)
             else:
