@@ -183,12 +183,13 @@ class ES(object):
                     split_strip(each, ':') for each in split_strip(_hosts)]:
                 hosts.append(dict(host=host, port=port))
 
-            params = {}
+            params = dict((k,cls.settings[k]) for k in cls.settings if k not in ['hosts', 'sniff', 'chunk_size'])
+            
             if cls.settings.asbool('sniff'):
-                params = dict(
+                params.update(dict(
                     sniff_on_start=True,
                     sniff_on_connection_fail=True
-                )
+                ))
 
             cls.api = elasticsearch.Elasticsearch(
                 hosts=hosts, serializer=engine.ESJSONSerializer(),
