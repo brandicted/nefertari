@@ -183,8 +183,8 @@ class ES(object):
                     split_strip(each, ':') for each in split_strip(_hosts)]:
                 hosts.append(dict(host=host, port=port))
 
-            params = dict(cls.settings)
-            del params['hosts']
+            params = dict((k,cls.settings[k]) for k in cls.settings if k not in ['hosts', 'sniff', 'chunk_size'])
+            
             if cls.settings.asbool('sniff'):
                 params.update(dict(
                     sniff_on_start=True,
