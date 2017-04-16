@@ -27,6 +27,7 @@ endpoint would be available at '/users,stories' and '/stories,users'.
 Polymorphic endpoints support all the read functionality regular ES
 endpoint supports: query, search, filter, sort, aggregation, etc.
 """
+import imp
 from pyramid.security import DENY_ALL, Allow, ALL_PERMISSIONS
 
 from nefertari.view import BaseView
@@ -58,6 +59,16 @@ class PolymorphicHelperMixin(object):
         collections = self.request.matchdict['collections'].split('/')[0]
         collections = [coll.strip() for coll in collections.split(',')]
         return set(collections)
+
+    def get_collection_filtered(self):
+        try:  # Todo: Find a more performant way to detect nefertari-guards
+            imp.find_module('nefertari_guards')
+            from nefertari_guards.elasticsearch import ACLFilterES
+
+            return ACLFilterES(self.Model.__name__).get_collection(
+                    request=self.request, **self._query_params)
+        except ImportError:
+            return self.get_collection_es()
 
     def get_resources(self, collections):
         """ Get resources that correspond to values from :collections:.
@@ -174,4 +185,5 @@ class PolymorphicESView(PolymorphicHelperMixin, BaseView):
         Set default limit and call :self.get_collection_es: to query ES.
         """
         self._query_params.process_int_param('_limit', 20)
-        return self.get_collection_es()
+
+        return self.get_collection_filtered()

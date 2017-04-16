@@ -236,7 +236,7 @@ class TestDefaultResponseRendererMixin(object):
     def test_render_update_many(self, mock_resp):
         system = self._system_mocks()
         mixin = renderers.DefaultResponseRendererMixin()
-        mixin.render_update_many(13, system, {'a': 'b'})
+        mixin.render_update_many({'count': 13}, system, {'a': 'b'})
         mock_resp.assert_called_once_with(
             'Updated 13 Foo(s) objects', a='b')
 

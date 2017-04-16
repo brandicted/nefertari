@@ -139,7 +139,7 @@ class TestPolymorphicESView(object):
         mock_coll.assert_called_with()
         mock_res.assert_called_with(['stories', 'users'])
 
-    @patch.object(polymorphic.PolymorphicESView, 'get_collection_es')
+    @patch.object(polymorphic.PolymorphicESView, 'get_collection_filtered')
     @patch.object(polymorphic.PolymorphicESView, 'determine_types')
     def test_index(self, mock_det, mock_get):
         view = self._dummy_view()

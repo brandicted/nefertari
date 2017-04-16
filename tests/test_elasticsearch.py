@@ -828,9 +828,14 @@ class TestES(object):
     @patch('nefertari.elasticsearch.ES.index')
     def test_index_relations(self, mock_ind, mock_settings):
         class Foo(object):
+            id = None
             _index_enabled = True
 
+            def pk_field(self):
+                return "id"
+
         docs = [Foo()]
+        docs[0].id = 1
         db_obj = Mock()
         db_obj.get_related_documents.return_value = [(Foo, docs)]
         mock_settings.index_name = 'foo'

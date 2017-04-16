@@ -6,6 +6,7 @@ from collections import defaultdict
 
 import elasticsearch
 from elasticsearch import helpers
+import os
 import six
 
 from nefertari.utils import (
@@ -66,8 +67,32 @@ class ESHttpConnection(elasticsearch.Urllib3HttpConnection):
 def includeme(config):
     Settings = dictset(config.registry.settings)
     ES.setup(Settings)
-    ES.create_index()
 
+    # Load custom index settings
+    index_settings = None
+    index_settings_path = None
+
+    if "elasticsearch.index.settings_file" in Settings:
+        index_settings_path = Settings["elasticsearch.index.settings_file"]
+
+        if not os.path.exists(index_settings_path):
+            raise Exception("Custom index settings file does not exist : '{file_name}'".format(
+                file_name=index_settings_path
+            ))
+    else:
+        if os.path.exists("index_settings.json"):
+            index_settings_path = "index_settings.json"
+
+    if index_settings_path is not None:
+        with open(index_settings_path) as data_file:
+            try:
+                index_settings = json.load(data_file)
+            except:
+                raise Exception("Could not parse custom index settings : '{file_name}'".format(
+                    file_name=index_settings_path
+                ))
+
+    ES.create_index(index_settings=index_settings)
     if ES.settings.asbool('enable_polymorphic_query'):
         config.include('nefertari.polymorphic')
 
@@ -180,7 +205,7 @@ class ES(object):
             _hosts = cls.settings.hosts
             hosts = []
             for (host, port) in [
-                    split_strip(each, ':') for each in split_strip(_hosts)]:
+                split_strip(each, ':') for each in split_strip(_hosts)]:
                 hosts.append(dict(host=host, port=port))
 
             params = {}
@@ -207,12 +232,17 @@ class ES(object):
         self.chunk_size = chunk_size
 
     @classmethod
-    def create_index(cls, index_name=None):
+    def create_index(cls, index_name=None, index_settings=None):
         index_name = index_name or cls.settings.index_name
         try:
             cls.api.indices.exists([index_name])
         except (IndexNotFoundException, JHTTPNotFound):
-            cls.api.indices.create(index_name)
+            cls.api.indices.create(
+                index=index_name,
+                body={
+                    'settings': index_settings
+                }
+            )
 
     @classmethod
     def delete_index(cls, index_name=None):
@@ -613,8 +643,15 @@ class ES(object):
     def index_relations(cls, db_obj, request=None, **kwargs):
         for model_cls, documents in db_obj.get_related_documents(**kwargs):
             if getattr(model_cls, '_index_enabled', False) and documents:
+                children_to_index = []
+
+                for child in documents:
+                    pk_name = child.pk_field()
+                    if getattr(child, pk_name) is not None:
+                        children_to_index.append(child)
+
                 cls(model_cls.__name__).index(
-                    to_dicts(documents), request=request)
+                    to_dicts(children_to_index), request=request)
 
     @classmethod
     def bulk_index_relations(cls, items, request=None, **kwargs):
