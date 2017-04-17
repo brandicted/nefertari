@@ -14,6 +14,9 @@ Create your project in a virtualenv directory (see the `virtualenv documentation
     $ pserve local.ini
 
 
+Project created this way will also contain basic HTTP tests which can be run with ``py.test`` command.
+
+
 Requirements
 ------------
 
