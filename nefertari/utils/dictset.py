@@ -27,7 +27,10 @@ class dictset(dict):
         return dictset([[k, v] for k, v in self.items() if k not in only])
 
     def __getattr__(self, key):
-        return self[key]
+        if key in self:
+            return self[key]
+        else:
+            raise AttributeError("No such attribute: %s" % key)
 
     def __setattr__(self, key, val):
         self[key] = val

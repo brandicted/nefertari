@@ -195,7 +195,7 @@ class ES(object):
                 connection_class=ESHttpConnection, **params)
             log.info('Including Elasticsearch. %s' % cls.settings)
 
-        except KeyError as e:
+        except AttributeError as e:
             raise Exception(
                 'Bad or missing settings for elasticsearch. %s' % e)
 
