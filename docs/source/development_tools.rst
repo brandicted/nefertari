@@ -15,7 +15,7 @@ The available options are:
 --config        specify ini file to use (required)
 --models        list of models to index. Models must subclass ESBaseDocument.
 --params        URL-encoded parameters for each module
---quiet         "quiet mode" (surpress output)
+--quiet         "quiet mode" (suppress output)
 --index         Specify name of index. E.g. the slug at the end of http://localhost:9200/example_api
 --chunk         Index chunk size
 --force         Force re-indexation of all documents in database engine (defaults to False)
